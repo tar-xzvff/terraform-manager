@@ -1,6 +1,12 @@
-celery
+amqp==2.2.2
+billiard==3.5.0.3
+celery==4.1.0
 Django==2.0.2
 django-filter==1.1.0
 djangorestframework==3.7.7
+kombu==4.1.0
 Markdown==2.6.11
+python-terraform==0.9.1
 pytz==2018.3
+redis==2.10.6
+vine==1.1.4
