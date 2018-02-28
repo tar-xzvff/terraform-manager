@@ -36,5 +36,5 @@ pip install -r requirements.txt
 cd terraform_manager/common
 #DjangoプロジェクトのフルパスをPYTHONPATHに設定 (以下はubuntuの場合を想定)
 export PYTHONPATH=/home/ubuntu/terraform-manager/terraform_manager/
-celery -A executor worker --loglevel=info
+celery -A common_tasks worker --loglevel=info
 ```
