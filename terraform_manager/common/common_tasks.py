@@ -1,6 +1,7 @@
 from __future__ import absolute_import, unicode_literals
 import os
 from celery import Celery
+from python_terraform import Terraform
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'terraform_manager.settings')
 
@@ -10,6 +11,7 @@ app.autodiscover_tasks()
 
 
 TERRAFORM_PATH = ''
+TERRAFORM_ENVIRONMENT_ROOT_PATH = ''
 
 
 @app.task(bind=True)
@@ -22,20 +24,24 @@ def get_app():
 
 
 @app.task
-def init(self):
-    pass
+def init(self, id):
+    tf = Terraform(working_dir=TERRAFORM_ENVIRONMENT_ROOT_PATH + id)
+    tf.init()
 
 
 @app.task
-def plan(self):
-    pass
+def plan(self, id):
+    tf = Terraform(working_dir=TERRAFORM_ENVIRONMENT_ROOT_PATH + id)
+    tf.plan()
 
 
 @app.task
-def apply(self):
-    pass
+def apply(self, id):
+    tf = Terraform(working_dir=TERRAFORM_ENVIRONMENT_ROOT_PATH + id)
+    tf.apply()
 
 
 @app.task
-def destroy(self):
-    pass
+def destroy(self, id):
+    tf = Terraform(working_dir=TERRAFORM_ENVIRONMENT_ROOT_PATH + id)
+    tf.destroy()
