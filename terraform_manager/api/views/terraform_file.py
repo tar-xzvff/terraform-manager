@@ -19,16 +19,30 @@ class TerraformFileViewSet(viewsets.ModelViewSet):
         serializer = EnvironmentSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
-            print("VALID")
-            return Response()
+            return Response(serializer)
         else:
-            print("INVALID")
-            return Response()
+            return Response(serializer.error_messages)
 
 
 class EnvironmentViewSet(viewsets.ModelViewSet):
     queryset = Environment.objects.all()
     serializer_class = TerraformFileSerializer
+
+    @detail_route(methods=['put'])
+    def init(self, *args, **kwargs):
+        pass
+
+    @detail_route(methods=['put'])
+    def plan(self, *args, **kwargs):
+        pass
+
+    @detail_route(methods=['put'])
+    def apply(self, *args, **kwargs):
+        pass
+
+    @detail_route(methods=['put'], url_path='destroy')
+    def _destroy(self, *args, **kwargs):
+        pass
 
 
 class CeleryExampleViewSet(viewsets.ViewSet):
