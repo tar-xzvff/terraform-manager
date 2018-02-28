@@ -31,7 +31,9 @@ redis-server /usr/local/etc/redis.conf
 
 ```bash
 git clone https://github.com/tar-xzvff/terraform-manager.git
-cd terraform-manager/terraform_manager/common
+cd terraform-manager
+pip install -r requirements.txt
+cd terraform_manager/common
 #DjangoプロジェクトのフルパスをPYTHONPATHに設定 (以下はubuntuの場合を想定)
 export PYTHONPATH=/home/ubuntu/terraform-manager/terraform_manager/
 celery -A executor worker --loglevel=info
