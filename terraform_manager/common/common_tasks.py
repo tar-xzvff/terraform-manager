@@ -24,6 +24,10 @@ def get_app():
 
 
 @app.task
+def copy_tf_files(self, id):
+    #   TODO    :   TFファイルをテキストのからファイルにして、任意のディレクトリに保存する処理を実装する
+
+@app.task
 def init(self, id):
     tf = Terraform(working_dir=TERRAFORM_ENVIRONMENT_ROOT_PATH + id)
     tf.init()
