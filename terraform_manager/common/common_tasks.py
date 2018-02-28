@@ -3,6 +3,8 @@ import os
 from celery import Celery
 from python_terraform import Terraform
 
+from common.models.log import Log
+
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'terraform_manager.settings')
 
 app = Celery('terraform_manager')
@@ -30,22 +32,41 @@ def copy_tf_files(self, id):
 @app.task
 def init(self, id):
     tf = Terraform(working_dir=TERRAFORM_ENVIRONMENT_ROOT_PATH + id)
-    tf.init()
+    return_code, stdout, stderr = tf.init()
+    log = Log(id=id,
+        return_code=return_code,
+        stdout=stdout,
+        stderr=stderr)
+    log.save()
+
+@app.task
+def plan(self, id, var):
+    tf = Terraform(working_dir=TERRAFORM_ENVIRONMENT_ROOT_PATH + id)
+    return_code, stdout, stderr = tf.plan(var=var)
+    log = Log(id=id,
+              return_code=return_code,
+              stdout=stdout,
+              stderr=stderr)
+    log.save()
 
 
 @app.task
-def plan(self, id):
+def apply(self, id, var):
     tf = Terraform(working_dir=TERRAFORM_ENVIRONMENT_ROOT_PATH + id)
-    tf.plan()
+    return_code, stdout, stderr = tf.apply(var=var)
+    log = Log(id=id,
+              return_code=return_code,
+              stdout=stdout,
+              stderr=stderr)
+    log.save()
 
 
 @app.task
-def apply(self, id):
+def destroy(self, id, var):
     tf = Terraform(working_dir=TERRAFORM_ENVIRONMENT_ROOT_PATH + id)
-    tf.apply()
-
-
-@app.task
-def destroy(self, id):
-    tf = Terraform(working_dir=TERRAFORM_ENVIRONMENT_ROOT_PATH + id)
-    tf.destroy()
+    return_code, stdout, stderr = tf.destroy(var=var)
+    log = Log(id=id,
+              return_code=return_code,
+              stdout=stdout,
+              stderr=stderr)
+    log.save()
