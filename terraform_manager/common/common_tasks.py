@@ -3,8 +3,6 @@ import os
 from celery import Celery
 from python_terraform import Terraform
 
-from common.models.log import Log
-
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'terraform_manager.settings')
 
 app = Celery('terraform_manager')
@@ -28,21 +26,26 @@ def get_app():
 @app.task
 def copy_tf_files(self, id):
     #   TODO    :   TFファイルをテキストのからファイルにして、任意のディレクトリに保存する処理を実装する
+    pass
+
 
 @app.task
 def init(self, id):
     tf = Terraform(working_dir=TERRAFORM_ENVIRONMENT_ROOT_PATH + id)
     return_code, stdout, stderr = tf.init()
+    from common.models.log import Log
     log = Log(id=id,
         return_code=return_code,
         stdout=stdout,
         stderr=stderr)
     log.save()
 
+
 @app.task
 def plan(self, id, var):
     tf = Terraform(working_dir=TERRAFORM_ENVIRONMENT_ROOT_PATH + id)
     return_code, stdout, stderr = tf.plan(var=var)
+    from common.models.log import Log
     log = Log(id=id,
               return_code=return_code,
               stdout=stdout,
@@ -54,6 +57,7 @@ def plan(self, id, var):
 def apply(self, id, var):
     tf = Terraform(working_dir=TERRAFORM_ENVIRONMENT_ROOT_PATH + id)
     return_code, stdout, stderr = tf.apply(var=var)
+    from common.models.log import Log
     log = Log(id=id,
               return_code=return_code,
               stdout=stdout,
@@ -65,6 +69,7 @@ def apply(self, id, var):
 def destroy(self, id, var):
     tf = Terraform(working_dir=TERRAFORM_ENVIRONMENT_ROOT_PATH + id)
     return_code, stdout, stderr = tf.destroy(var=var)
+    from common.models.log import Log
     log = Log(id=id,
               return_code=return_code,
               stdout=stdout,
