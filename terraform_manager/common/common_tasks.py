@@ -9,7 +9,6 @@ app = Celery('terraform_manager')
 app.config_from_object('django.conf:settings')
 app.autodiscover_tasks()
 
-
 TERRAFORM_PATH = ''
 TERRAFORM_ENVIRONMENT_ROOT_PATH = ''
 
@@ -35,9 +34,9 @@ def init(self, id):
     return_code, stdout, stderr = tf.init()
     from common.models.log import Log
     log = Log(id=id,
-        return_code=return_code,
-        stdout=stdout,
-        stderr=stderr)
+              return_code=return_code,
+              stdout=stdout,
+              stderr=stderr)
     log.save()
 
 
