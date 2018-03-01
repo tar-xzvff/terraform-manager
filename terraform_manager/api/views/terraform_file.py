@@ -38,15 +38,24 @@ class EnvironmentViewSet(viewsets.ModelViewSet):
 
     @detail_route(methods=['put'])
     def plan(self, *args, **kwargs):
-        pass
+        from common.common_tasks import plan
+        var = {}
+        plan.delay(self.get_object().id, var)
+        return Response()
 
     @detail_route(methods=['put'])
     def apply(self, *args, **kwargs):
-        pass
+        from common.common_tasks import apply
+        var = {}
+        apply.delay(self.get_object().id, var)
+        return Response()
 
     @detail_route(methods=['put'], url_path='destroy')
     def _destroy(self, *args, **kwargs):
-        pass
+        from common.common_tasks import destroy
+        var = {}
+        destroy.delay(self.get_object().id, var)
+        return Response()
 
 
 class CeleryExampleViewSet(viewsets.ViewSet):
