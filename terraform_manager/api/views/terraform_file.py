@@ -7,6 +7,8 @@ from api.serializers.terraform_file import TerraformFileSerializer
 from rest_framework.decorators import detail_route
 from rest_framework.response import Response
 
+from api.serializers.environment import EnvironmentSerializer
+
 
 class TerraformFileViewSet(viewsets.ModelViewSet):
     queryset = TerraformFile.objects.all()
@@ -26,11 +28,13 @@ class TerraformFileViewSet(viewsets.ModelViewSet):
 
 class EnvironmentViewSet(viewsets.ModelViewSet):
     queryset = Environment.objects.all()
-    serializer_class = TerraformFileSerializer
+    serializer_class = EnvironmentSerializer
 
     @detail_route(methods=['put'])
     def init(self, *args, **kwargs):
-        pass
+        from common.common_tasks import init
+        init.delay(self.get_object().id)
+        return Response()
 
     @detail_route(methods=['put'])
     def plan(self, *args, **kwargs):
