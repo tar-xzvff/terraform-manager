@@ -33,7 +33,7 @@ def init(self, id):
     tf = Terraform(working_dir=TERRAFORM_ENVIRONMENT_ROOT_PATH + id)
     return_code, stdout, stderr = tf.init()
     from common.models.log import Log
-    log = Log(id=id,
+    log = Log(environment=id,
               return_code=return_code,
               stdout=stdout,
               stderr=stderr)
@@ -45,7 +45,7 @@ def plan(self, id, var):
     tf = Terraform(working_dir=TERRAFORM_ENVIRONMENT_ROOT_PATH + id)
     return_code, stdout, stderr = tf.plan(var=var)
     from common.models.log import Log
-    log = Log(id=id,
+    log = Log(environment=id,
               return_code=return_code,
               stdout=stdout,
               stderr=stderr)
@@ -57,7 +57,7 @@ def apply(self, id, var):
     tf = Terraform(working_dir=TERRAFORM_ENVIRONMENT_ROOT_PATH + id)
     return_code, stdout, stderr = tf.apply(var=var)
     from common.models.log import Log
-    log = Log(id=id,
+    log = Log(environment=id,
               return_code=return_code,
               stdout=stdout,
               stderr=stderr)
@@ -69,7 +69,7 @@ def destroy(self, id, var):
     tf = Terraform(working_dir=TERRAFORM_ENVIRONMENT_ROOT_PATH + id)
     return_code, stdout, stderr = tf.destroy(var=var)
     from common.models.log import Log
-    log = Log(id=id,
+    log = Log(environment=id,
               return_code=return_code,
               stdout=stdout,
               stderr=stderr)
