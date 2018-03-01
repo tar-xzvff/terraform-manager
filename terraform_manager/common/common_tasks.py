@@ -1,5 +1,5 @@
 from __future__ import absolute_import, unicode_literals
-import os
+import os, logging
 from celery import Celery
 from python_terraform import Terraform
 
@@ -23,9 +23,17 @@ def get_app():
 
 
 @app.task
-def copy_tf_files(self, id):
-    #   TODO    :   TFファイルをテキストのからファイルにして、任意のディレクトリに保存する処理を実装する
-    pass
+def copy_tf_files(id):
+    environment_dir = TERRAFORM_ENVIRONMENT_ROOT_PATH + str(id)
+
+    import os
+    os.mkdir(environment_dir)
+
+    from common.models.terraform_file import TerraformFile
+    tf = TerraformFile.objects.get(id=id)
+    f = open(environment_dir + "/" + '{}.tf'.format(tf.name), 'w')
+    f.writelines(tf.body)
+    f.close()
 
 
 @app.task
