@@ -37,15 +37,17 @@ def copy_tf_files(environment_id, terraform_file_id):
 
 
 @app.task
-def init(self, id):
-    tf = Terraform(working_dir=TERRAFORM_ENVIRONMENT_ROOT_PATH + id)
+def init(environment_id):
+    tf = Terraform(working_dir=TERRAFORM_ENVIRONMENT_ROOT_PATH + str(environment_id))
     return_code, stdout, stderr = tf.init()
-    from common.models.log import Log
-    log = Log(environment=id,
-              return_code=return_code,
-              stdout=stdout,
-              stderr=stderr)
-    log.save()
+    # 不具合があるので一旦コメントアウト
+    #from common.models.log import Log
+    from common.models.environment import Environment
+    #log = Log(environment=Environment.objects.get(id=environment_id),
+    #          return_code=return_code,
+    #          stdout=stdout,
+    #          stderr=stderr)
+    #log.save()
 
 
 @app.task
