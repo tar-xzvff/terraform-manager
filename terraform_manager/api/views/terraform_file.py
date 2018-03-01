@@ -15,11 +15,11 @@ class TerraformFileViewSet(viewsets.ModelViewSet):
     @detail_route(methods=['post'])
     def create_environment(self, *args, **kwargs):
         from api.serializers.environment import EnvironmentSerializer
-        data = {"terraform_file": kwargs['pk']}
+        data = {"terraform_file": kwargs['pk'], 'state': 'none'}
         serializer = EnvironmentSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer)
+            return Response(serializer.data)
         else:
             return Response(serializer.error_messages)
 
