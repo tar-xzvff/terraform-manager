@@ -23,14 +23,14 @@ def get_app():
 
 
 @app.task
-def copy_tf_files(id):
-    environment_dir = TERRAFORM_ENVIRONMENT_ROOT_PATH + str(id)
+def copy_tf_files(environment_id, terraform_file_id):
+    environment_dir = TERRAFORM_ENVIRONMENT_ROOT_PATH + str(environment_id)
 
     import os
     os.mkdir(environment_dir)
 
     from common.models.terraform_file import TerraformFile
-    tf = TerraformFile.objects.get(id=id)
+    tf = TerraformFile.objects.get(id=terraform_file_id)
     f = open(environment_dir + "/" + '{}.tf'.format(tf.name), 'w')
     f.writelines(tf.body)
     f.close()
