@@ -1,4 +1,4 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, status
 from rest_framework import routers
 from rest_framework.decorators import detail_route
 from rest_framework.response import Response
@@ -32,29 +32,42 @@ class EnvironmentViewSet(viewsets.ModelViewSet):
     @detail_route(methods=['put'])
     def init(self, *args, **kwargs):
         from common.common_tasks import init
-        init.delay(self.get_object().id)
-        return Response()
+        if self.get_object().locked:
+            return Response(status=status.HTTP_409_CONFLICT)
+        else:
+            init.delay(self.get_object().id)
+            return Response()
 
     @detail_route(methods=['put'])
     def plan(self, *args, **kwargs):
         from common.common_tasks import plan
-        var = self.request.data['var']
-        plan.delay(self.get_object().id, var)
-        return Response()
+        if self.get_object().locked:
+            return Response(status=status.HTTP_409_CONFLICT)
+        else:
+            var = self.request.data['var']
+            plan.delay(self.get_object().id, var)
+            return Response()
 
     @detail_route(methods=['put'])
     def apply(self, *args, **kwargs):
         from common.common_tasks import apply
-        var = self.request.data['var']
-        apply.delay(self.get_object().id, var)
-        return Response()
+        if self.get_object().locked:
+            return Response(status=status.HTTP_409_CONFLICT)
+        else:
+            var = self.request.data['var']
+            apply.delay(self.get_object().id, var)
+            return Response()
+
 
     @detail_route(methods=['put'], url_path='destroy')
     def _destroy(self, *args, **kwargs):
         from common.common_tasks import destroy
-        var = self.request.data['var']
-        destroy.delay(self.get_object().id, var)
-        return Response()
+        if self.get_object().locked:
+            return Response(status=status.HTTP_409_CONFLICT)
+        else:
+            var = self.request.data['var']
+            destroy.delay(self.get_object().id, var)
+            return Response()
 
 
 class CeleryExampleViewSet(viewsets.ViewSet):
