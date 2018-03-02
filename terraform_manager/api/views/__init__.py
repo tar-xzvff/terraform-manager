@@ -38,21 +38,21 @@ class EnvironmentViewSet(viewsets.ModelViewSet):
     @detail_route(methods=['put'])
     def plan(self, *args, **kwargs):
         from common.common_tasks import plan
-        var = {}
+        var = self.request.data['var']
         plan.delay(self.get_object().id, var)
         return Response()
 
     @detail_route(methods=['put'])
     def apply(self, *args, **kwargs):
         from common.common_tasks import apply
-        var = {}
+        var = self.request.data['var']
         apply.delay(self.get_object().id, var)
         return Response()
 
     @detail_route(methods=['put'], url_path='destroy')
     def _destroy(self, *args, **kwargs):
         from common.common_tasks import destroy
-        var = {}
+        var = self.request.data['var']
         destroy.delay(self.get_object().id, var)
         return Response()
 
