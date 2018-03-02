@@ -1,14 +1,12 @@
 from rest_framework import viewsets
 from rest_framework import routers
+from rest_framework.decorators import detail_route
+from rest_framework.response import Response
 
 from common.models.terraform_file import TerraformFile
 from common.models.environment import Environment
 
-from api.serializers.terraform_file import TerraformFileSerializer
-from rest_framework.decorators import detail_route
-from rest_framework.response import Response
-
-from api.serializers.environment import EnvironmentSerializer
+from api.serializers import EnvironmentSerializer, TerraformFileSerializer
 
 
 class TerraformFileViewSet(viewsets.ModelViewSet):
@@ -17,7 +15,7 @@ class TerraformFileViewSet(viewsets.ModelViewSet):
 
     @detail_route(methods=['post'])
     def create_environment(self, *args, **kwargs):
-        from api.serializers.environment import EnvironmentSerializer
+        from api.serializers import EnvironmentSerializer
         data = {"terraform_file": kwargs['pk'], 'state': 'none'}
         serializer = EnvironmentSerializer(data=data)
         if serializer.is_valid():
@@ -70,5 +68,5 @@ router = routers.SimpleRouter()
 router.register(r'terraform_files', TerraformFileViewSet)
 router.register(r'celery_example', CeleryExampleViewSet, base_name="celery-example")
 router.register(r'environments', EnvironmentViewSet, base_name="environments")
-#router.register(r'accounts', AccountViewSet)
+# router.register(r'accounts', AccountViewSet)
 urlpatterns = router.urls
