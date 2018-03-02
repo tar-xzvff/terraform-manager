@@ -35,52 +35,84 @@ def copy_tf_files(environment_id, terraform_file_id):
     f.writelines(tf.body)
     f.close()
 
+    variables_tf = """
+variable "token" {}
+variable "secret" {}
+variable "zone" {}
+    """
+
+    f = open(environment_dir + "/" + '{}.tf'.format("variables"), 'w')
+    f.writelines(variables_tf)
+    f.close()
+
 
 @app.task
 def init(environment_id):
-    tf = Terraform(working_dir=TERRAFORM_ENVIRONMENT_ROOT_PATH + str(environment_id))
-    return_code, stdout, stderr = tf.init()
-    # 不具合があるので一旦コメントアウト
-    #from common.models.log import Log
-    from common.models.environment import Environment
-    #log = Log(environment=Environment.objects.get(id=environment_id),
-    #          return_code=return_code,
-    #          stdout=stdout,
-    #          stderr=stderr)
-    #log.save()
+    try:
+        tf = Terraform(working_dir=TERRAFORM_ENVIRONMENT_ROOT_PATH + str(environment_id))
+        return_code, stdout, stderr = tf.init()
+    except:
+        #   TODO    :   エラーログを送出する
+        pass
+    finally:
+        from common.models import Log
+        from common.models.environment import Environment
+        log = Log(environment=Environment.objects.get(id=environment_id),
+                  return_code=return_code,
+                  stdout=stdout,
+                  stderr=stderr)
+        log.save()
 
 
 @app.task
-def plan(self, id, var):
-    tf = Terraform(working_dir=TERRAFORM_ENVIRONMENT_ROOT_PATH + id)
-    return_code, stdout, stderr = tf.plan(var=var)
-    from common.models.log import Log
-    log = Log(environment=id,
-              return_code=return_code,
-              stdout=stdout,
-              stderr=stderr)
-    log.save()
+def plan(environment_id, var):
+    try:
+        tf = Terraform(working_dir=TERRAFORM_ENVIRONMENT_ROOT_PATH + str(environment_id))
+        return_code, stdout, stderr = tf.plan(var=var)
+    except:
+        #   TODO    :   エラーログを送出する
+        pass
+    finally:
+        from common.models import Log
+        from common.models.environment import Environment
+        log = Log(environment=Environment.objects.get(id=environment_id),
+                  return_code=return_code,
+                  stdout=stdout,
+                  stderr=stderr)
+        log.save()
 
 
 @app.task
-def apply(self, id, var):
-    tf = Terraform(working_dir=TERRAFORM_ENVIRONMENT_ROOT_PATH + id)
-    return_code, stdout, stderr = tf.apply(var=var)
-    from common.models.log import Log
-    log = Log(environment=id,
-              return_code=return_code,
-              stdout=stdout,
-              stderr=stderr)
-    log.save()
+def apply(environment_id, var):
+    try:
+        tf = Terraform(working_dir=TERRAFORM_ENVIRONMENT_ROOT_PATH + str(environment_id))
+        return_code, stdout, stderr = tf.apply(var=var)
+    except:
+        #   TODO    :   エラーログを送出する
+        pass
+    finally:
+        from common.models import Log
+        from common.models.environment import Environment
+        log = Log(environment=Environment.objects.get(id=environment_id),
+                  return_code=return_code,
+                  stdout=stdout,
+                  stderr=stderr)
+        log.save()
 
 
 @app.task
-def destroy(self, id, var):
-    tf = Terraform(working_dir=TERRAFORM_ENVIRONMENT_ROOT_PATH + id)
-    return_code, stdout, stderr = tf.destroy(var=var)
-    from common.models.log import Log
-    log = Log(environment=id,
-              return_code=return_code,
-              stdout=stdout,
-              stderr=stderr)
-    log.save()
+def destroy(environment_id, var):
+    try:
+        tf = Terraform(working_dir=TERRAFORM_ENVIRONMENT_ROOT_PATH + str(environment_id))
+        return_code, stdout, stderr = tf.destroy(var=var)
+    except:
+        #   TODO    :   エラーログを送出する
+        pass
+    finally:
+        from common.models import Log
+        from common.models.environment import Environment
+        log = Log(environment=Environment.objects.get(id=environment_id),
+                  return_code=return_code,
+                  stdout=stdout,
+                  stderr=stderr)
+        log.save()
