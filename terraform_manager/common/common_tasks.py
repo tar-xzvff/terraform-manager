@@ -48,6 +48,10 @@ variable "zone" {}
 
 @app.task
 def init(environment_id):
+    from common.models.environment import Environment
+    environment = Environment.objects.get(id=environment_id)
+    environment.locked = True
+    environment.save()
     try:
         tf = Terraform(working_dir=TERRAFORM_ENVIRONMENT_ROOT_PATH + str(environment_id))
         return_code, stdout, stderr = tf.init()
@@ -62,10 +66,16 @@ def init(environment_id):
                   stdout=stdout,
                   stderr=stderr)
         log.save()
+        environment.locked = False
+        environment.save()
 
 
 @app.task
 def plan(environment_id, var):
+    from common.models.environment import Environment
+    environment = Environment.objects.get(id=environment_id)
+    environment.locked = True
+    environment.save()
     try:
         tf = Terraform(working_dir=TERRAFORM_ENVIRONMENT_ROOT_PATH + str(environment_id))
         return_code, stdout, stderr = tf.plan(var=var)
@@ -80,10 +90,16 @@ def plan(environment_id, var):
                   stdout=stdout,
                   stderr=stderr)
         log.save()
+        environment.locked = False
+        environment.save()
 
 
 @app.task
 def apply(environment_id, var):
+    from common.models.environment import Environment
+    environment = Environment.objects.get(id=environment_id)
+    environment.locked = True
+    environment.save()
     try:
         tf = Terraform(working_dir=TERRAFORM_ENVIRONMENT_ROOT_PATH + str(environment_id))
         return_code, stdout, stderr = tf.apply(var=var)
@@ -98,10 +114,16 @@ def apply(environment_id, var):
                   stdout=stdout,
                   stderr=stderr)
         log.save()
+        environment.locked = False
+        environment.save()
 
 
 @app.task
 def destroy(environment_id, var):
+    from common.models.environment import Environment
+    environment = Environment.objects.get(id=environment_id)
+    environment.locked = True
+    environment.save()
     try:
         tf = Terraform(working_dir=TERRAFORM_ENVIRONMENT_ROOT_PATH + str(environment_id))
         return_code, stdout, stderr = tf.destroy(var=var)
@@ -116,3 +138,6 @@ def destroy(environment_id, var):
                   stdout=stdout,
                   stderr=stderr)
         log.save()
+        environment.locked = False
+        environment.save()
+
