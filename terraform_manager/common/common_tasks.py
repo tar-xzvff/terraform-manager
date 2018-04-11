@@ -86,6 +86,9 @@ def plan(environment_id, var):
     :param environment_id:  環境ID
     :param var: terraformコマンド実行時に引数に渡す変数
     """
+    if not os.path.isdir(TERRAFORM_ENVIRONMENT_ROOT_PATH + environment_id):
+        #   TODO    :   initとcopy_tf_files関数と同じ処理を入れる
+        pass
     from common.models.environment import Environment
     environment = Environment.objects.get(id=environment_id)
     environment.locked = True
@@ -115,6 +118,9 @@ def apply(environment_id, var):
     :param environment_id:  環境ID
     :param var: terraformコマンド実行時に引数に渡す変数
     """
+    if not os.path.isdir(TERRAFORM_ENVIRONMENT_ROOT_PATH + environment_id):
+        #   TODO    :   initとcopy_tf_files関数と同じ処理を入れる
+        pass
     from common.models.environment import Environment
     environment = Environment.objects.get(id=environment_id)
     environment.locked = True
@@ -144,6 +150,9 @@ def destroy(environment_id, var):
     :param environment_id:  環境ID
     :param var: terraformコマンド実行時に引数に渡す変数
     """
+    if not os.path.isdir(TERRAFORM_ENVIRONMENT_ROOT_PATH + environment_id):
+        #   TODO    :   initとcopy_tf_files関数と同じ処理を入れる
+        pass
     from common.models.environment import Environment
     environment = Environment.objects.get(id=environment_id)
     environment.locked = True
