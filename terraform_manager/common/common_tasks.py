@@ -24,6 +24,11 @@ def get_app():
 
 @app.task
 def copy_tf_files(environment_id, terraform_file_id):
+    """
+    terraformの実行に必要なファイルをworkerのカレントディレクトリにコピーします.
+    :param environment_id:  環境ID
+    :param terraform_file_id:   terraformファイルID
+    """
     environment_dir = TERRAFORM_ENVIRONMENT_ROOT_PATH + str(environment_id)
 
     import os
@@ -48,6 +53,10 @@ variable "zone" {}
 
 @app.task
 def init(environment_id):
+    """
+    terraform initを実行します.
+    :param environment_id:  環境ID
+    """
     from common.models.environment import Environment
     environment = Environment.objects.get(id=environment_id)
     environment.locked = True
@@ -72,6 +81,11 @@ def init(environment_id):
 
 @app.task
 def plan(environment_id, var):
+    """
+    terraform planを実行します.
+    :param environment_id:  環境ID
+    :param var: terraformコマンド実行時に引数に渡す変数
+    """
     from common.models.environment import Environment
     environment = Environment.objects.get(id=environment_id)
     environment.locked = True
@@ -96,6 +110,11 @@ def plan(environment_id, var):
 
 @app.task
 def apply(environment_id, var):
+    """
+    terraform applyを実行します.
+    :param environment_id:  環境ID
+    :param var: terraformコマンド実行時に引数に渡す変数
+    """
     from common.models.environment import Environment
     environment = Environment.objects.get(id=environment_id)
     environment.locked = True
@@ -120,6 +139,11 @@ def apply(environment_id, var):
 
 @app.task
 def destroy(environment_id, var):
+    """
+    terraform destroyを実行します.
+    :param environment_id:  環境ID
+    :param var: terraformコマンド実行時に引数に渡す変数
+    """
     from common.models.environment import Environment
     environment = Environment.objects.get(id=environment_id)
     environment.locked = True
