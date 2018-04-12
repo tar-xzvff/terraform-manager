@@ -13,3 +13,11 @@ python manage.py runserver
 
 ### worker
 https://github.com/tar-xzvff/terraform-manager/tree/master/terraform_manager/common
+
+
+## Deployment
+### workerコンテナの作成方法
+```
+# プロジェクトのルートディレトリで以下のコマンドを実行
+docker build -t terraform-manager-worker  -f docker/worker/Dockerfile .
+```
