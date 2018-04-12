@@ -11,7 +11,7 @@ app.config_from_object('django.conf:settings')
 app.autodiscover_tasks()
 
 TERRAFORM_PATH = ''
-TERRAFORM_ENVIRONMENT_ROOT_PATH = ''
+# TERRAFORM_ENVIRONMENT_ROOT_PATH = '/terraform-environment/'
 
 
 @app.task(bind=True)
@@ -78,7 +78,6 @@ def plan(environment_id, var):
     environment.locked = True
     environment.save()
     try:
-        print(var)
         tf = Terraform(working_dir=TERRAFORM_ENVIRONMENT_ROOT_PATH + str(environment_id))
         return_code, stdout, stderr = tf.plan(var=var)
     except:
@@ -166,8 +165,8 @@ def prepare_environment(environment_id, terraform_file_id):
     # *.tfファイルのコピー.
     from common.models.terraform_file import TerraformFile
     tf = TerraformFile.objects.get(id=terraform_file_id)
-    f = open(environment_dir + "/" + '{}.tf'.format(tf.name), 'w')
-    f.writelines(tf.body)
+    f = open(environment_dir + "/" + '{}.tf'.format(tf.name), 'wb')
+    f.write(tf.body.encode('utf-8'))
     f.close()
 
     # 変数定義ファイルの作成.
@@ -184,8 +183,8 @@ variable "token" {}
 variable "secret" {}
 variable "zone" {}
     """
-    f = open(environment_dir + "/" + '{}.tf'.format("variables"), 'w')
-    f.writelines(variables_tf)
+    f = open(environment_dir + "/" + '{}.tf'.format("variables"), 'wb')
+    f.write(variables_tf.encode('utf-8'))
     f.close()
 
 
