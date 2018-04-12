@@ -4,7 +4,7 @@ from celery import Celery
 from python_terraform import Terraform
 
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'terraform_manager.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'terraform_manager.settings.develop')
 
 app = Celery('terraform_manager')
 app.config_from_object('django.conf:settings')
