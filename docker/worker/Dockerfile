@@ -15,13 +15,15 @@ RUN unzip terraform.zip
 RUN curl -sL https://releases.usacloud.jp/terraform/terraform-provider-sakuracloud_1.0.5_linux-amd64.zip > terraform_sackuracloud.zip
 RUN unzip terraform_sackuracloud.zip
 
-# ソースファイルのコピー.
-RUN mkdir /terraform-manager
-COPY ./ /terraform-manager/
-
 # ライブラリのインストール.
+RUN mkdir /terraform-manager
 WORKDIR /terraform-manager/
+COPY ./requirements.txt /terraform-manager/
 RUN pip3 install -r requirements.txt
+
+
+# ソースファイルのコピー.
+COPY ./ /terraform-manager/
 
 # terraform実行環境のディレクトリを作成.
 RUN mkdir /terraform-environment
