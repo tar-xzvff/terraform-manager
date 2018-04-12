@@ -31,3 +31,5 @@ RUN mkdir /terraform-environment
 WORKDIR /terraform-manager/terraform_manager/
 ENV PYTHONPATH /terraform-manager/terraform_manager:$PYTHONPATH
 CMD celery -A common.common_tasks worker --loglevel=info
+
+#   TODO    :   redisとDB接続先とterraform実行環境のパスを外部から変数として設定できるようにする.
