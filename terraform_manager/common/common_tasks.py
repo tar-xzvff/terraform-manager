@@ -132,6 +132,7 @@ def destroy(environment_id, var):
     :param environment_id:  環境ID
     :param var: terraformコマンド実行時に引数に渡す変数
     """
+    #   TODO    :   マルチノードの場合、正常に処理が実行されないので、backendを指定してステータスを管理する.
     from common.models.environment import Environment
     environment = Environment.objects.get(id=environment_id)
 
