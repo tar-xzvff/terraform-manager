@@ -49,11 +49,11 @@ def init(environment_id):
     try:
         tf = Terraform(working_dir=TERRAFORM_ENVIRONMENT_ROOT_PATH + str(environment_id))
         return_code, stdout, stderr = tf.init()
+        save_log(environment_id, return_code, stdout, stderr)
     except:
         #   TODO    :   エラーログを送出する
         pass
     finally:
-        save_log(environment_id, return_code, stdout, stderr)
         environment.locked = False
         environment.save()
 
@@ -81,11 +81,11 @@ def plan(environment_id, var):
     try:
         tf = Terraform(working_dir=TERRAFORM_ENVIRONMENT_ROOT_PATH + str(environment_id))
         return_code, stdout, stderr = tf.plan(var=var)
+        save_log(environment_id, return_code, stdout, stderr)
     except:
         #   TODO    :   エラーログを送出する
         pass
     finally:
-        save_log(environment_id, return_code, stdout, stderr)
         environment.locked = False
         environment.save()
 
@@ -116,11 +116,11 @@ def apply(environment_id, var):
         tf = Terraform(working_dir=TERRAFORM_ENVIRONMENT_ROOT_PATH + str(environment_id))
         return_code, stdout, stderr = tf.apply(var=var)
         os.environ.pop("TF_CLI_ARGS")
+        save_log(environment_id, return_code, stdout, stderr)
     except:
         #   TODO    :   エラーログを送出する
         pass
     finally:
-        save_log(environment_id, return_code, stdout, stderr)
         environment.locked = False
         environment.save()
 
@@ -151,11 +151,11 @@ def destroy(environment_id, var):
         tf = Terraform(working_dir=TERRAFORM_ENVIRONMENT_ROOT_PATH + str(environment_id))
         return_code, stdout, stderr = tf.destroy(var=var)
         os.environ.pop("TF_CLI_ARGS")
+        save_log(environment_id, return_code, stdout, stderr)
     except:
         #   TODO    :   エラーログを送出する
         pass
     finally:
-        save_log(environment_id, return_code, stdout, stderr)
         environment.locked = False
         environment.save()
 
