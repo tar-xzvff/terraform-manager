@@ -68,6 +68,7 @@ def plan(environment_id, var):
     from common.models.environment import Environment
     environment = Environment.objects.get(id=environment_id)
 
+    import os
     if not os.path.isdir(TERRAFORM_ENVIRONMENT_ROOT_PATH + environment_id):
         prepare_environment(environment_id, environment.terraform_file.id)
         init(environment_id)
@@ -99,6 +100,7 @@ def apply(environment_id, var):
     from common.models.environment import Environment
     environment = Environment.objects.get(id=environment_id)
 
+    import os
     if not os.path.isdir(TERRAFORM_ENVIRONMENT_ROOT_PATH + environment_id):
         prepare_environment(environment_id, environment.terraform_file.id)
         init(environment_id)
@@ -109,8 +111,11 @@ def apply(environment_id, var):
     environment.locked = True
     environment.save()
     try:
+        import os
+        os.environ["TF_CLI_ARGS"] = "-auto-approve=true"
         tf = Terraform(working_dir=TERRAFORM_ENVIRONMENT_ROOT_PATH + str(environment_id))
         return_code, stdout, stderr = tf.apply(var=var)
+        os.environ.pop("TF_CLI_ARGS")
     except:
         #   TODO    :   エラーログを送出する
         pass
@@ -130,6 +135,7 @@ def destroy(environment_id, var):
     from common.models.environment import Environment
     environment = Environment.objects.get(id=environment_id)
 
+    import os
     if not os.path.isdir(TERRAFORM_ENVIRONMENT_ROOT_PATH + environment_id):
         prepare_environment(environment_id, environment.terraform_file.id)
         init(environment_id)
@@ -140,8 +146,11 @@ def destroy(environment_id, var):
     environment.locked = True
     environment.save()
     try:
+        import os
+        os.environ["TF_CLI_ARGS"] = "-auto-approve=true"
         tf = Terraform(working_dir=TERRAFORM_ENVIRONMENT_ROOT_PATH + str(environment_id))
         return_code, stdout, stderr = tf.destroy(var=var)
+        os.environ.pop("TF_CLI_ARGS")
     except:
         #   TODO    :   エラーログを送出する
         pass
