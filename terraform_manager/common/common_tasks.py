@@ -11,7 +11,7 @@ app.config_from_object('django.conf:settings')
 app.autodiscover_tasks()
 
 TERRAFORM_PATH = ''
-TERRAFORM_ENVIRONMENT_ROOT_PATH = ''
+# TERRAFORM_ENVIRONMENT_ROOT_PATH = '/terraform-environment/'
 
 
 @app.task(bind=True)
@@ -49,11 +49,11 @@ def init(environment_id):
     try:
         tf = Terraform(working_dir=TERRAFORM_ENVIRONMENT_ROOT_PATH + str(environment_id))
         return_code, stdout, stderr = tf.init()
+        save_log(environment_id, return_code, stdout, stderr)
     except:
         #   TODO    :   エラーログを送出する
         pass
     finally:
-        save_log(environment_id, return_code, stdout, stderr)
         environment.locked = False
         environment.save()
 
@@ -68,6 +68,7 @@ def plan(environment_id, var):
     from common.models.environment import Environment
     environment = Environment.objects.get(id=environment_id)
 
+    import os
     if not os.path.isdir(TERRAFORM_ENVIRONMENT_ROOT_PATH + environment_id):
         prepare_environment(environment_id, environment.terraform_file.id)
         init(environment_id)
@@ -78,14 +79,13 @@ def plan(environment_id, var):
     environment.locked = True
     environment.save()
     try:
-        print(var)
         tf = Terraform(working_dir=TERRAFORM_ENVIRONMENT_ROOT_PATH + str(environment_id))
         return_code, stdout, stderr = tf.plan(var=var)
+        save_log(environment_id, return_code, stdout, stderr)
     except:
         #   TODO    :   エラーログを送出する
         pass
     finally:
-        save_log(environment_id, return_code, stdout, stderr)
         environment.locked = False
         environment.save()
 
@@ -100,6 +100,7 @@ def apply(environment_id, var):
     from common.models.environment import Environment
     environment = Environment.objects.get(id=environment_id)
 
+    import os
     if not os.path.isdir(TERRAFORM_ENVIRONMENT_ROOT_PATH + environment_id):
         prepare_environment(environment_id, environment.terraform_file.id)
         init(environment_id)
@@ -110,13 +111,16 @@ def apply(environment_id, var):
     environment.locked = True
     environment.save()
     try:
+        import os
+        os.environ["TF_CLI_ARGS"] = "-auto-approve=true"
         tf = Terraform(working_dir=TERRAFORM_ENVIRONMENT_ROOT_PATH + str(environment_id))
         return_code, stdout, stderr = tf.apply(var=var)
+        os.environ.pop("TF_CLI_ARGS")
+        save_log(environment_id, return_code, stdout, stderr)
     except:
         #   TODO    :   エラーログを送出する
         pass
     finally:
-        save_log(environment_id, return_code, stdout, stderr)
         environment.locked = False
         environment.save()
 
@@ -128,9 +132,11 @@ def destroy(environment_id, var):
     :param environment_id:  環境ID
     :param var: terraformコマンド実行時に引数に渡す変数
     """
+    #   TODO    :   マルチノードの場合、正常に処理が実行されないので、backendを指定してステータスを管理する.
     from common.models.environment import Environment
     environment = Environment.objects.get(id=environment_id)
 
+    import os
     if not os.path.isdir(TERRAFORM_ENVIRONMENT_ROOT_PATH + environment_id):
         prepare_environment(environment_id, environment.terraform_file.id)
         init(environment_id)
@@ -141,13 +147,16 @@ def destroy(environment_id, var):
     environment.locked = True
     environment.save()
     try:
+        import os
+        os.environ["TF_CLI_ARGS"] = "-auto-approve=true"
         tf = Terraform(working_dir=TERRAFORM_ENVIRONMENT_ROOT_PATH + str(environment_id))
         return_code, stdout, stderr = tf.destroy(var=var)
+        os.environ.pop("TF_CLI_ARGS")
+        save_log(environment_id, return_code, stdout, stderr)
     except:
         #   TODO    :   エラーログを送出する
         pass
     finally:
-        save_log(environment_id, return_code, stdout, stderr)
         environment.locked = False
         environment.save()
 
@@ -166,8 +175,8 @@ def prepare_environment(environment_id, terraform_file_id):
     # *.tfファイルのコピー.
     from common.models.terraform_file import TerraformFile
     tf = TerraformFile.objects.get(id=terraform_file_id)
-    f = open(environment_dir + "/" + '{}.tf'.format(tf.name), 'w')
-    f.writelines(tf.body)
+    f = open(environment_dir + "/" + '{}.tf'.format(tf.name), 'wb')
+    f.write(tf.body.encode('utf-8'))
     f.close()
 
     # 変数定義ファイルの作成.
@@ -184,8 +193,8 @@ variable "token" {}
 variable "secret" {}
 variable "zone" {}
     """
-    f = open(environment_dir + "/" + '{}.tf'.format("variables"), 'w')
-    f.writelines(variables_tf)
+    f = open(environment_dir + "/" + '{}.tf'.format("variables"), 'wb')
+    f.write(variables_tf.encode('utf-8'))
     f.close()
 
 
