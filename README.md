@@ -35,6 +35,17 @@ CELERY_RESULT_BACKEND = 'redis://<YOUR_REDIS_SERVER_IP_ADDRESS>:6379/0'
 
 
 ### 2. Creating and starting an API container
+Execute the following command in the project root directory.
+
+Create
+```
+docker build -t terraform-manager-api  -f docker/api/Dockerfile .
+```
+
+Run
+```
+docker run -it terraform-manager-api
+```
 
 ### 3. Creating and starting a worker container
 Execute the following command in the project root directory.
