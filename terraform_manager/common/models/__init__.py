@@ -8,6 +8,9 @@ class Variable(models.Model):
     key = models.CharField(max_length=100)
     value = models.TextField()
 
+    def __str__(self):
+        return '{}: {}'.format(self.key, self.value)
+
 
 class Log(models.Model):
     environment = models.ForeignKey(Environment, on_delete=True)
