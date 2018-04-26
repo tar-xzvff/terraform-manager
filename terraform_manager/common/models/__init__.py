@@ -5,7 +5,8 @@ from common.models.terraform_file import TerraformFile
 
 
 class Variable(models.Model):
-    body = models.TextField()
+    key = models.CharField(max_length=100)
+    value = models.TextField()
 
 
 class Log(models.Model):
