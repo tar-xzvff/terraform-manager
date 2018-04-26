@@ -16,4 +16,5 @@ RUN pip3 install -r requirements.txt
 # ソースファイルのコピー.
 COPY ./ /terraform-manager/
 
-CMD ["uwsgi","--http",":80","--module","terraform_manager.wsgi"]
+ENV PYTHONPATH /terraform-manager/terraform_manager:$PYTHONPATH
+CMD ["uwsgi","--http",":80","--file","/terraform-manager/terraform_manager/terraform_manager/wsgi.py"]
