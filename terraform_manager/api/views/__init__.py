@@ -20,6 +20,22 @@ class TerraformFileViewSet(viewsets.ModelViewSet):
         serializer = EnvironmentSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
+            from common.common_tasks import copy_tf_files
+            copy_tf_files.delay(serializer.instance.id, serializer.validated_data['terraform_file'].id)
+            return Response(serializer.data)
+        else:
+            return Response(serializer.error_messages)
+
+    @detail_route(methods=['post'])
+    def direct_apply(self, *args, **kwargs):
+        from api.serializers import EnvironmentSerializer
+        data = {"terraform_file": kwargs['pk'], 'state': 'none'}
+        serializer = EnvironmentSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            from common.common_tasks import direct_apply
+            var = self.request.data['var']
+            direct_apply.delay(serializer.instance.id, serializer.validated_data['terraform_file'].id, var)
             return Response(serializer.data)
         else:
             return Response(serializer.error_messages)
@@ -57,7 +73,6 @@ class EnvironmentViewSet(viewsets.ModelViewSet):
             var = self.request.data['var']
             apply.delay(self.get_object().id, var)
             return Response()
-
 
     @detail_route(methods=['put'], url_path='destroy')
     def _destroy(self, *args, **kwargs):
