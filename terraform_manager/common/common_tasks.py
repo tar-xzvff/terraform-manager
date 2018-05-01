@@ -45,6 +45,7 @@ def init(environment_id):
     if not os.path.isdir(TERRAFORM_ENVIRONMENT_ROOT_PATH + environment_id):
         prepare_environment(environment_id=environment_id, terraform_file_id=environment.terraform_file.id)
     environment.locked = True
+    environment.state = 'IN_INITIALIZE'
     environment.save()
     try:
         tf = Terraform(working_dir=TERRAFORM_ENVIRONMENT_ROOT_PATH + str(environment_id))
@@ -52,9 +53,11 @@ def init(environment_id):
         save_log(environment_id, return_code, stdout, stderr)
     except:
         #   TODO    :   エラーログを送出する
-        pass
+        environment.state = 'FAILED'
+        environment.save()
     finally:
         environment.locked = False
+        environment.state = 'INITIALIZED'
         environment.save()
 
 
@@ -77,6 +80,7 @@ def plan(environment_id, var):
         raise Exception()
 
     environment.locked = True
+    environment.state = 'IN_PLANNING'
     environment.save()
     try:
         tf = Terraform(working_dir=TERRAFORM_ENVIRONMENT_ROOT_PATH + str(environment_id))
@@ -84,9 +88,11 @@ def plan(environment_id, var):
         save_log(environment_id, return_code, stdout, stderr)
     except:
         #   TODO    :   エラーログを送出する
-        pass
+        environment.state = 'FAILED'
+        environment.save()
     finally:
         environment.locked = False
+        environment.state = 'PLANNED'
         environment.save()
 
 
@@ -109,6 +115,7 @@ def apply(environment_id, var):
         raise Exception()
 
     environment.locked = True
+    environment.state = 'IN_APPLYING'
     environment.save()
     try:
         import os
@@ -119,9 +126,11 @@ def apply(environment_id, var):
         save_log(environment_id, return_code, stdout, stderr)
     except:
         #   TODO    :   エラーログを送出する
-        pass
+        environment.state = 'FAILED'
+        environment.save()
     finally:
         environment.locked = False
+        environment.state = 'APPLIED'
         environment.save()
 
 
@@ -145,6 +154,7 @@ def destroy(environment_id, var):
         raise Exception()
 
     environment.locked = True
+    environment.state = 'IN_DESTROYING'
     environment.save()
     try:
         import os
@@ -155,7 +165,62 @@ def destroy(environment_id, var):
         save_log(environment_id, return_code, stdout, stderr)
     except:
         #   TODO    :   エラーログを送出する
-        pass
+        environment.state = 'FAILED'
+        environment.save()
+    finally:
+        environment.locked = False
+        environment.state = 'DESTROYED'
+        environment.save()
+
+
+@app.task
+def direct_apply(environment_id, terraform_file_id, var):
+    """
+    copy_tf_files ~ init ~ plan ~ applyの処理を一括して実行します.
+    :param environment_id:  環境ID
+    :param terraform_file_id:   terraformファイルID
+    :param var: terraformコマンド実行時に引数に渡す変数
+    """
+    prepare_environment(environment_id, terraform_file_id)
+
+    from common.models.environment import Environment
+    environment = Environment.objects.get(id=environment_id)
+    environment.locked = True
+    environment.save()
+    try:
+        #   terraform init
+        environment.state = 'IN_INITIALIZE'
+        environment.save()
+        tf = Terraform(working_dir=TERRAFORM_ENVIRONMENT_ROOT_PATH + str(environment_id))
+        return_code, stdout, stderr = tf.init()
+        save_log(environment_id, return_code, stdout, stderr)
+        environment.state = 'INITIALIZED'
+        environment.save()
+
+        #   terraform plan
+        environment.state = 'IN_PLANNING'
+        environment.save()
+        tf = Terraform(working_dir=TERRAFORM_ENVIRONMENT_ROOT_PATH + str(environment_id))
+        return_code, stdout, stderr = tf.plan(var=var)
+        save_log(environment_id, return_code, stdout, stderr)
+        environment.state = 'PLANNED'
+        environment.save()
+
+        #   terraform apply
+        environment.state = 'IN_APPLYING'
+        environment.save()
+        import os
+        os.environ["TF_CLI_ARGS"] = "-auto-approve=true"
+        tf = Terraform(working_dir=TERRAFORM_ENVIRONMENT_ROOT_PATH + str(environment_id))
+        return_code, stdout, stderr = tf.apply(var=var)
+        os.environ.pop("TF_CLI_ARGS")
+        save_log(environment_id, return_code, stdout, stderr)
+        environment.state = 'APPLIED'
+        environment.save()
+    except:
+        #   TODO    :   エラーログを送出する
+        environment.state = 'FAILED'
+        environment.save()
     finally:
         environment.locked = False
         environment.save()
