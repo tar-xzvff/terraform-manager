@@ -179,6 +179,21 @@ def prepare_environment(environment_id, terraform_file_id):
     f.write(tf.body.encode('utf-8'))
     f.close()
 
+    # プロバイダの設定定義ファイルの作成.
+    variable_body = ''
+    provider_body = 'provider {} {{\n'.format(tf.provider.provider_name)
+    for attribute in tf.provider.attribute.all():
+        if attribute.value is None or attribute.value == '':
+            provider_body += '\t{0} = "${{var.{1}}}"\n'.format(attribute.key, attribute.key)
+            variable_body += 'variable "{0}" {{}}\n'.format(attribute.key)
+        else:
+            provider_body += '\t{0} = "{1}"\n'.format(attribute.key, attribute.value)
+    provider_body += '}'
+
+    f = open(environment_dir + "/" + '{}.tf'.format(tf.provider.provider_name), 'wb')
+    f.write(provider_body.encode('utf-8'))
+    f.close()
+
     # ShellScriptのコピー
     if tf.has_shell_script():
         for script in tf.shell_script.all():
@@ -188,30 +203,11 @@ def prepare_environment(environment_id, terraform_file_id):
 
     # 変数定義ファイルの作成(DBに保存されているもの).
     if tf.has_variable():
-        variable_body = ''
         for variable in tf.variables.all():
-            variable_body += 'variable {0} {{ default = "{1}" }}\n'.format(variable.key, variable.value)
+            variable_body += 'variable "{0}" {{ default = "{1}" }}\n'.format(variable.key, variable.value)
         f = open(environment_dir + "/" + '{}.tf'.format("variables"), 'wb')
         f.write(variable_body.encode('utf-8'))
         f.close()
-
-    # 変数定義ファイルの作成.
-    variables_tf = """
-provider "sakuracloud" {
-    # APIキー(トークン)
-    token = "${var.token}"
-    # APIキー(シークレット)
-    secret = "${var.secret}"
-    # デフォルトゾーン
-    zone = "${var.zone}"
-}
-variable "token" {}
-variable "secret" {}
-variable "zone" {}
-    """
-    f = open(environment_dir + "/" + '{}.tf'.format("variables"), 'wb')
-    f.write(variables_tf.encode('utf-8'))
-    f.close()
 
 
 def save_log(environment_id, return_code, stdout, stderr):
