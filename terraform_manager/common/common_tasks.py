@@ -11,7 +11,7 @@ app.config_from_object('django.conf:settings')
 app.autodiscover_tasks()
 
 TERRAFORM_PATH = ''
-# TERRAFORM_ENVIRONMENT_ROOT_PATH = '/terraform-environment/'
+TERRAFORM_ENVIRONMENT_ROOT_PATH = '/terraform-environment/'
 
 
 @app.task(bind=True)
@@ -175,9 +175,25 @@ def prepare_environment(environment_id, terraform_file_id):
     # *.tfファイルのコピー.
     from common.models.terraform_file import TerraformFile
     tf = TerraformFile.objects.get(id=terraform_file_id)
-    f = open(environment_dir + "/" + '{}.tf'.format(tf.name), 'wb')
+    f = open(environment_dir + "/" + '{}.tf'.format(tf.file_name), 'wb')
     f.write(tf.body.encode('utf-8'))
     f.close()
+
+    # ShellScriptのコピー
+    if tf.has_shell_script():
+        for script in tf.shell_script.all():
+            f = open(environment_dir + "/" + '{}.sh'.format(script.file_name), 'wb')
+            f.write(script.body.encode('utf-8'))
+            f.close()
+
+    # 変数定義ファイルの作成(DBに保存されているもの).
+    if tf.has_variable():
+        variable_body = ''
+        for variable in tf.variables.all():
+            variable_body += 'variable {0} {{ default = "{1}" }}\n'.format(variable.key, variable.value)
+        f = open(environment_dir + "/" + '{}.tf'.format("variables"), 'wb')
+        f.write(variable_body.encode('utf-8'))
+        f.close()
 
     # 変数定義ファイルの作成.
     variables_tf = """

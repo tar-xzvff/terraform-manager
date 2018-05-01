@@ -14,3 +14,9 @@ class TerraformFile(models.Model):
 
     def __str__(self):
         return self.name
+
+    def has_shell_script(self):
+        return 0 < self.shell_script.count()
+
+    def has_variable(self):
+        return 0 < self.variables.count()
