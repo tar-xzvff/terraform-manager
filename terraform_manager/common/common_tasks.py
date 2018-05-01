@@ -52,7 +52,8 @@ def init(environment_id):
         return_code, stdout, stderr = tf.init()
         save_log(environment_id, return_code, stdout, stderr)
     except:
-        #   TODO    :   エラーログを送出する
+        import traceback
+        save_log(environment_id, 999, '', traceback.format_exc())
         environment.state = 'FAILED'
         environment.save()
     finally:
@@ -87,7 +88,8 @@ def plan(environment_id, var):
         return_code, stdout, stderr = tf.plan(var=var)
         save_log(environment_id, return_code, stdout, stderr)
     except:
-        #   TODO    :   エラーログを送出する
+        import traceback
+        save_log(environment_id, 999, '', traceback.format_exc())
         environment.state = 'FAILED'
         environment.save()
     finally:
@@ -125,7 +127,8 @@ def apply(environment_id, var):
         os.environ.pop("TF_CLI_ARGS")
         save_log(environment_id, return_code, stdout, stderr)
     except:
-        #   TODO    :   エラーログを送出する
+        import traceback
+        save_log(environment_id, 999, '', traceback.format_exc())
         environment.state = 'FAILED'
         environment.save()
     finally:
@@ -164,7 +167,8 @@ def destroy(environment_id, var):
         os.environ.pop("TF_CLI_ARGS")
         save_log(environment_id, return_code, stdout, stderr)
     except:
-        #   TODO    :   エラーログを送出する
+        import traceback
+        save_log(environment_id, 999, '', traceback.format_exc())
         environment.state = 'FAILED'
         environment.save()
     finally:
@@ -218,7 +222,8 @@ def direct_apply(environment_id, terraform_file_id, var):
         environment.state = 'APPLIED'
         environment.save()
     except:
-        #   TODO    :   エラーログを送出する
+        import traceback
+        save_log(environment_id, 999, '', traceback.format_exc())
         environment.state = 'FAILED'
         environment.save()
     finally:
