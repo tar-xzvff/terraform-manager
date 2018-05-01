@@ -179,6 +179,13 @@ def prepare_environment(environment_id, terraform_file_id):
     f.write(tf.body.encode('utf-8'))
     f.close()
 
+    # ShellScriptのコピー
+    if tf.has_shell_script():
+        for script in tf.shell_script:
+            f = open(environment_dir + "/" + '{}.tf'.format(script.file_name), 'wb')
+            f.write(script.body.encode('utf-8'))
+            f.close()
+
     # 変数定義ファイルの作成.
     variables_tf = """
 provider "sakuracloud" {
