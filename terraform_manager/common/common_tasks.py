@@ -45,16 +45,20 @@ def init(environment_id):
     if not os.path.isdir(TERRAFORM_ENVIRONMENT_ROOT_PATH + environment_id):
         prepare_environment(environment_id=environment_id, terraform_file_id=environment.terraform_file.id)
     environment.locked = True
+    environment.state = 'IN_INITIALIZE'
     environment.save()
     try:
         tf = Terraform(working_dir=TERRAFORM_ENVIRONMENT_ROOT_PATH + str(environment_id))
         return_code, stdout, stderr = tf.init()
         save_log(environment_id, return_code, stdout, stderr)
     except:
-        #   TODO    :   エラーログを送出する
-        pass
+        import traceback
+        save_log(environment_id, 999, '', traceback.format_exc())
+        environment.state = 'FAILED'
+        environment.save()
     finally:
         environment.locked = False
+        environment.state = 'INITIALIZED'
         environment.save()
 
 
@@ -77,16 +81,20 @@ def plan(environment_id, var):
         raise Exception()
 
     environment.locked = True
+    environment.state = 'IN_PLANNING'
     environment.save()
     try:
         tf = Terraform(working_dir=TERRAFORM_ENVIRONMENT_ROOT_PATH + str(environment_id))
         return_code, stdout, stderr = tf.plan(var=var)
         save_log(environment_id, return_code, stdout, stderr)
     except:
-        #   TODO    :   エラーログを送出する
-        pass
+        import traceback
+        save_log(environment_id, 999, '', traceback.format_exc())
+        environment.state = 'FAILED'
+        environment.save()
     finally:
         environment.locked = False
+        environment.state = 'PLANNED'
         environment.save()
 
 
@@ -109,6 +117,7 @@ def apply(environment_id, var):
         raise Exception()
 
     environment.locked = True
+    environment.state = 'IN_APPLYING'
     environment.save()
     try:
         import os
@@ -118,10 +127,13 @@ def apply(environment_id, var):
         os.environ.pop("TF_CLI_ARGS")
         save_log(environment_id, return_code, stdout, stderr)
     except:
-        #   TODO    :   エラーログを送出する
-        pass
+        import traceback
+        save_log(environment_id, 999, '', traceback.format_exc())
+        environment.state = 'FAILED'
+        environment.save()
     finally:
         environment.locked = False
+        environment.state = 'APPLIED'
         environment.save()
 
 
@@ -145,6 +157,7 @@ def destroy(environment_id, var):
         raise Exception()
 
     environment.locked = True
+    environment.state = 'IN_DESTROYING'
     environment.save()
     try:
         import os
@@ -154,8 +167,65 @@ def destroy(environment_id, var):
         os.environ.pop("TF_CLI_ARGS")
         save_log(environment_id, return_code, stdout, stderr)
     except:
-        #   TODO    :   エラーログを送出する
-        pass
+        import traceback
+        save_log(environment_id, 999, '', traceback.format_exc())
+        environment.state = 'FAILED'
+        environment.save()
+    finally:
+        environment.locked = False
+        environment.state = 'DESTROYED'
+        environment.save()
+
+
+@app.task
+def direct_apply(environment_id, terraform_file_id, var):
+    """
+    copy_tf_files ~ init ~ plan ~ applyの処理を一括して実行します.
+    :param environment_id:  環境ID
+    :param terraform_file_id:   terraformファイルID
+    :param var: terraformコマンド実行時に引数に渡す変数
+    """
+    prepare_environment(environment_id, terraform_file_id)
+
+    from common.models.environment import Environment
+    environment = Environment.objects.get(id=environment_id)
+    environment.locked = True
+    environment.save()
+    try:
+        #   terraform init
+        environment.state = 'IN_INITIALIZE'
+        environment.save()
+        tf = Terraform(working_dir=TERRAFORM_ENVIRONMENT_ROOT_PATH + str(environment_id))
+        return_code, stdout, stderr = tf.init()
+        save_log(environment_id, return_code, stdout, stderr)
+        environment.state = 'INITIALIZED'
+        environment.save()
+
+        #   terraform plan
+        environment.state = 'IN_PLANNING'
+        environment.save()
+        tf = Terraform(working_dir=TERRAFORM_ENVIRONMENT_ROOT_PATH + str(environment_id))
+        return_code, stdout, stderr = tf.plan(var=var)
+        save_log(environment_id, return_code, stdout, stderr)
+        environment.state = 'PLANNED'
+        environment.save()
+
+        #   terraform apply
+        environment.state = 'IN_APPLYING'
+        environment.save()
+        import os
+        os.environ["TF_CLI_ARGS"] = "-auto-approve=true"
+        tf = Terraform(working_dir=TERRAFORM_ENVIRONMENT_ROOT_PATH + str(environment_id))
+        return_code, stdout, stderr = tf.apply(var=var)
+        os.environ.pop("TF_CLI_ARGS")
+        save_log(environment_id, return_code, stdout, stderr)
+        environment.state = 'APPLIED'
+        environment.save()
+    except:
+        import traceback
+        save_log(environment_id, 999, '', traceback.format_exc())
+        environment.state = 'FAILED'
+        environment.save()
     finally:
         environment.locked = False
         environment.save()
@@ -179,6 +249,21 @@ def prepare_environment(environment_id, terraform_file_id):
     f.write(tf.body.encode('utf-8'))
     f.close()
 
+    # プロバイダの設定定義ファイルの作成.
+    variable_body = ''
+    provider_body = 'provider {} {{\n'.format(tf.provider.provider_name)
+    for attribute in tf.provider.attribute.all():
+        if attribute.value is None or attribute.value == '':
+            provider_body += '\t{0} = "${{var.{1}}}"\n'.format(attribute.key, attribute.key)
+            variable_body += 'variable "{0}" {{}}\n'.format(attribute.key)
+        else:
+            provider_body += '\t{0} = "{1}"\n'.format(attribute.key, attribute.value)
+    provider_body += '}'
+
+    f = open(environment_dir + "/" + '{}.tf'.format(tf.provider.provider_name), 'wb')
+    f.write(provider_body.encode('utf-8'))
+    f.close()
+
     # ShellScriptのコピー
     if tf.has_shell_script():
         for script in tf.shell_script.all():
@@ -188,30 +273,11 @@ def prepare_environment(environment_id, terraform_file_id):
 
     # 変数定義ファイルの作成(DBに保存されているもの).
     if tf.has_variable():
-        variable_body = ''
         for variable in tf.variables.all():
-            variable_body += 'variable {0} {{ default = "{1}" }}\n'.format(variable.key, variable.value)
+            variable_body += 'variable "{0}" {{ default = "{1}" }}\n'.format(variable.key, variable.value)
         f = open(environment_dir + "/" + '{}.tf'.format("variables"), 'wb')
         f.write(variable_body.encode('utf-8'))
         f.close()
-
-    # 変数定義ファイルの作成.
-    variables_tf = """
-provider "sakuracloud" {
-    # APIキー(トークン)
-    token = "${var.token}"
-    # APIキー(シークレット)
-    secret = "${var.secret}"
-    # デフォルトゾーン
-    zone = "${var.zone}"
-}
-variable "token" {}
-variable "secret" {}
-variable "zone" {}
-    """
-    f = open(environment_dir + "/" + '{}.tf'.format("variables"), 'wb')
-    f.write(variables_tf.encode('utf-8'))
-    f.close()
 
 
 def save_log(environment_id, return_code, stdout, stderr):

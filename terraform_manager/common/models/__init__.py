@@ -28,3 +28,20 @@ class ShellScript(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     terraform_file = models.ForeignKey(TerraformFile, related_name='shell_script', unique=False, on_delete=True)
+
+
+class Attribute(models.Model):
+    key = models.CharField(max_length=100)
+    value = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return '{}: {}'.format(self.key, self.value)
+
+
+class Provider(models.Model):
+    name = models.CharField(max_length=100)
+    provider_name = models.CharField(max_length=100)
+    attribute = models.ManyToManyField('Attribute', blank=True)
+
+    def __str__(self):
+        return self.name

@@ -9,6 +9,7 @@ class TerraformFile(models.Model):
     body = models.TextField()
     file_name = models.CharField(max_length=200)
     variables = models.ManyToManyField('Variable', blank=True)
+    provider = models.ForeignKey('Provider', on_delete=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
