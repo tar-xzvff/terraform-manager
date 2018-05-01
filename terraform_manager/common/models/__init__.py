@@ -27,4 +27,4 @@ class ShellScript(models.Model):
     body = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    terraform_file = models.ForeignKey(TerraformFile, unique=False, on_delete=True)
+    terraform_file = models.ForeignKey(TerraformFile, related_name='shell_script', unique=False, on_delete=True)
