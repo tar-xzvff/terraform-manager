@@ -186,6 +186,15 @@ def prepare_environment(environment_id, terraform_file_id):
             f.write(script.body.encode('utf-8'))
             f.close()
 
+    # 変数定義ファイルの作成(DBに保存されているもの).
+    if tf.has_variable():
+        variable_body = ''
+        for variable in tf.variables.all():
+            variable_body += 'variable {0} {{ default = "{1}" }}\n'.format(variable.key, variable.value)
+        f = open(environment_dir + "/" + '{}.tf'.format("variables2"), 'wb')
+        f.write(variable_body.encode('utf-8'))
+        f.close()
+
     # 変数定義ファイルの作成.
     variables_tf = """
 provider "sakuracloud" {
