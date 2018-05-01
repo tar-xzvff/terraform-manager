@@ -191,7 +191,7 @@ def prepare_environment(environment_id, terraform_file_id):
         variable_body = ''
         for variable in tf.variables.all():
             variable_body += 'variable {0} {{ default = "{1}" }}\n'.format(variable.key, variable.value)
-        f = open(environment_dir + "/" + '{}.tf'.format("variables2"), 'wb')
+        f = open(environment_dir + "/" + '{}.tf'.format("variables"), 'wb')
         f.write(variable_body.encode('utf-8'))
         f.close()
 
