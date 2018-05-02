@@ -52,7 +52,7 @@ docker build -t terraform-manager-api  -f docker/api/Dockerfile .
 
 Run
 ```
-docker run -it terraform-manager-api
+docker run -p 8000:80 -it terraform-manager-api
 ```
 
 ### 3. Creating and starting a worker container
