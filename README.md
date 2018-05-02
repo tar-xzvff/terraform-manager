@@ -15,7 +15,7 @@ python manage.py runserver
 ### 0. Preparation of MQ (Redis) and DB(postgres)
 Please prepare MQ (Redis) and DB (postgres).
 
-### 1. Configure settings.py
+### 1. Configure settings.py and DB initialization
 Please change the setting to your environment.
 ```
 DATABASES = {
@@ -33,6 +33,14 @@ BROKER_URL = 'redis://<YOUR_REDIS_SERVER_IP_ADDRESS>:6379/0'
 CELERY_RESULT_BACKEND = 'redis://<YOUR_REDIS_SERVER_IP_ADDRESS>:6379/0'
 ```
 
+
+Initial data is put in DB.
+```
+python manage.py migrate
+python manage.py createsuperuser
+python manage.py loaddata fixtures/attribute.json
+python manage.py loaddata fixtures/provider.json
+```
 
 ### 2. Creating and starting an API container
 Execute the following command in the project root directory.

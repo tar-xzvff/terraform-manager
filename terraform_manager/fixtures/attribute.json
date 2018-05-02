@@ -1,0 +1,1 @@
+[{"model": "common.attribute", "pk": 1, "fields": {"key": "token", "value": ""}}, {"model": "common.attribute", "pk": 2, "fields": {"key": "secret", "value": ""}}, {"model": "common.attribute", "pk": 3, "fields": {"key": "zone", "value": ""}}]
