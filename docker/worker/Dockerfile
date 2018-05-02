@@ -1,24 +1,19 @@
-FROM ubuntu:16.04
-
-# Python3実行環境のインストール.
-RUN apt-get update \
-  && apt-get install -y python3-pip python3-dev \
-  && cd /usr/local/bin \
-  && ln -s /usr/bin/python3 python \
-  && pip3 install --upgrade pip
+FROM fedora:26
 
 # terraformのインストール
 WORKDIR /bin/
-RUN apt-get install -y curl unzip
+RUN yum install -y curl unzip python3-devel
+RUN yum groupinstall -y "Development Tools"
 RUN curl -sL https://releases.hashicorp.com/terraform/0.11.7/terraform_0.11.7_linux_amd64.zip > terraform.zip
 RUN unzip terraform.zip
-RUN curl -sL https://releases.usacloud.jp/terraform/terraform-provider-sakuracloud_1.0.5_linux-amd64.zip > terraform_sackuracloud.zip
+RUN curl -sL https://github.com/sacloud/terraform-provider-sakuracloud/releases/download/v1.0.5/terraform-provider-sakuracloud_1.0.5_linux-amd64.zip > terraform_sackuracloud.zip
 RUN unzip terraform_sackuracloud.zip
 
 # ライブラリのインストール.
 RUN mkdir /terraform-manager
 WORKDIR /terraform-manager/
 COPY ./requirements.txt /terraform-manager/
+RUN pip3 install --upgrade pip
 RUN pip3 install -r requirements.txt
 
 
